@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<Configuration>
+<Configuration monitorInterval="5">
 
 	<!--These are some of the loggers you can enable. 
 	    There are several more you can find in the documentation. 
@@ -7,18 +7,117 @@
         to enable other logs like network (-Djavax.net.debug=ssl or all) and 
         Garbage Collector (-XX:+PrintGC). These will be append to the console, so you will 
         see them in the mule_ee.log file. -->
+        
+    <!-- 
+    	More about JSONLayout:
+    	-https://logging.apache.org/log4j/2.x/manual/layouts.html
+    	-http://home.apache.org/~rpopma/log4j/2.6/manual/layouts.html
+    	-https://logging.apache.org/log4j/log4j-2.2/manual/layouts.html
+    
+    	Intro to Log4j2 – Appenders, Layouts and Filters
+    	-https://www.baeldung.com/log4j2-appenders-layouts-filters
+    	
+    	ResponseTime:
+    	1) add timer-interceptor in the first flow, see mulelabservice
+    -->
+        
+    <Properties>
+		<property name="service.name">muleLabService</property>
+		<property name="service.version">1.0</property>
+	</Properties>
 
 
     <Appenders>
-        <RollingFile name="file" fileName="${sys:mule.home}${sys:file.separator}logs${sys:file.separator}mulelabservice.log" 
+    	<RollingRandomAccessFile name="application"
+			fileName="${env:LOG_PATH}${sys:file.separator}${service.name}-${service.version}_application.log"
+			filePattern="${env:LOG_PATH}${sys:file.separator}${service.name}-${service.version}-%d{yyyyMMdd}-%i.log.gz">
+			<PatternLayout pattern="%d [%t] %-5p %c - %m%n" />
+			<Policies>
+				<SizeBasedTriggeringPolicy size="20 MB" />
+				<CronTriggeringPolicy schedule="59 59 23 * * ?" />
+			</Policies>
+			<DefaultRolloverStrategy max="30" />
+		</RollingRandomAccessFile>
+		<RollingRandomAccessFile name="audit"
+			fileName="${env:LOG_PATH}${sys:file.separator}audit${sys:file.separator}${service.name}-${service.version}_audit.log"
+			filePattern="${env:LOG_PATH}${sys:file.separator}audit${sys:file.separator}${service.name}-${service.version}_audit-%d{yyyyMMdd}-%i.log.gz">
+			<PatternLayout pattern="%d [%t] %-5p %c - %m%n" />
+			<!-- <JSONLayout properties="true" /> -->
+			<Policies>
+				<SizeBasedTriggeringPolicy size="20 MB" />
+				<CronTriggeringPolicy schedule="59 59 23 * * ?" />
+			</Policies>
+			<DefaultRolloverStrategy max="30" />
+		</RollingRandomAccessFile>
+		<RollingRandomAccessFile name="trace"
+            fileName="${env:LOG_PATH}${sys:file.separator}audit${sys:file.separator}${service.name}-${service.version}_trace.log"
+            filePattern="${env:LOG_PATH}${sys:file.separator}audit${sys:file.separator}${service.name}-${service.version}_trace-%d{yyyyMMdd}-%i.log.gz">
+            <PatternLayout pattern="%d [%t] %-5p %c - %m%n" />
+            <!-- <JSONLayout properties="true" /> -->
+            <Policies>
+                <SizeBasedTriggeringPolicy size="20 MB" />
+                <CronTriggeringPolicy schedule="59 59 23 * * ?" />
+            </Policies>
+            <DefaultRolloverStrategy max="30" />
+        </RollingRandomAccessFile>
+        <RollingRandomAccessFile name="ms"
+            fileName="${env:LOG_PATH}${sys:file.separator}${service.name}-${service.version}_ms.log"
+            filePattern="${env:LOG_PATH}${sys:file.separator}${service.name}-${service.version}_ms-%d{yyyyMMdd}-%i.log.gz">
+            <PatternLayout pattern="%d [%t] %-5p %c - %m%n" />
+            <!--XMLLayout/-->
+            <!-- <JSONLayout properties="true"/> -->
+            <!--RFC5424Layout/-->
+            <!--JSONLayout properties="true" locationInfo="true" includeLocation="true"/-->
+            <!-- Write each entry as one row, i.e. not type of pretty -->
+            <!--JSONLayout properties="true" compact="true" eventEol="true"/-->
+            <!--JSONLayout complete="false" /-->
+            <Policies>
+                <SizeBasedTriggeringPolicy size="20 MB" />
+                <CronTriggeringPolicy schedule="59 59 23 * * ?" />
+            </Policies>
+            <DefaultRolloverStrategy max="30" />
+        </RollingRandomAccessFile>
+        <RollingFile name="mule-agent-appender"
+        	fileName="${env:LOG_PATH}${sys:file.separator}${service.name}-${service.version}_agent.log"
+        	filePattern="${env:LOG_PATH}${sys:file.separator}${service.name}-${service.version}_agent-%d{yyyyMMdd}-%i.log.gz">
+            <PatternLayout>
+                <Pattern>%d %p %c{1.} [%t] %m%n</Pattern>
+            </PatternLayout>
+            <Policies>
+                <TimeBasedTriggeringPolicy />
+                <SizeBasedTriggeringPolicy size="250 MB"/>
+            </Policies>
+        </RollingFile>
+        <!--RollingFile name="file" fileName="${sys:mule.home}${sys:file.separator}logs${sys:file.separator}mulelabservice.log" 
                  filePattern="${sys:mule.home}${sys:file.separator}logs${sys:file.separator}mulelabservice-%i.log">
             <PatternLayout pattern="%d [%t] %-5p %c - %m%n" />
             <SizeBasedTriggeringPolicy size="10 MB" />
             <DefaultRolloverStrategy max="10"/>
-        </RollingFile>
+        </RollingFile-->
     </Appenders>
     <Loggers>
+    
+    	<!-- ms logging -->
+        <AsyncLogger name="se.kenta.mule.ms.commons.logging" level="DEBUG" additivity="false">
+          <AppenderRef ref="ms" />
+        </AsyncLogger>
+        <!-- resptime logging -->
+        <AsyncLogger name="se.kenta.mule.ms.commons.interceptor" level="DEBUG" additivity="false">
+          <AppenderRef ref="ms" />
+        </AsyncLogger>
     	
+    	<!-- Application logging -->
+        <AsyncLogger name="se.kenta.mule.commons.logging.application" level="INFO" />
+
+        <!-- Trace logging -->
+        <AsyncLogger name="se.kenta.mule.commons.logging.trace" level="INFO" additivity="false">
+          <AppenderRef ref="trace" />
+        </AsyncLogger>
+        
+        <!-- Audit logging -->
+		<Logger name="se.kenta.mule.commons.logging.audit" level="INFO" additivity="false">
+			<AppenderRef ref="audit" />
+		</Logger>
     	
 		<!-- Http Logger shows wire traffic on DEBUG -->
 		<AsyncLogger name="org.mule.module.http.internal.HttpMessageLogger" level="WARN"/>
@@ -45,6 +144,14 @@
         
         <AsyncRoot level="INFO">
             <AppenderRef ref="file" />
+        </AsyncRoot>
+        
+        <AsyncLogger name="com.mulesoft.agent" additivity="TRUE" level="ALL">
+          <AppenderRef ref="mule-agent-appender" />
+        </AsyncLogger>
+
+        <AsyncRoot level="DEBUG">
+          <AppenderRef ref="Console"/>
         </AsyncRoot>
     </Loggers>
 </Configuration>

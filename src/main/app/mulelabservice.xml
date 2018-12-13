@@ -1,7 +1,33 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<mule xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
-	xmlns:spring="http://www.springframework.org/schema/beans" version="EE-3.8.2"
+<mule xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:spring="http://www.springframework.org/schema/beans" 
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
-http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd"></mule>
+http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
+    <http:listener-config name="HTTP_Listener_Configuration" host="0.0.0.0" port="8081" doc:name="HTTP Listener Configuration"/>
+    <flow name="mulelabserviceFlow">
+        <http:listener config-ref="HTTP_Listener_Configuration" path="/lab" doc:name="HTTP"/>
+        <logger message="${abc}" level="INFO" doc:name="Logger"/>
+        <!-- <logger message="${abc}" level="INFO" doc:name="Logger"/> -->
+        <timer-interceptor/>
+        <flow-ref name="mulelabserviceFlow_pre" doc:name="mulelabserviceFlow_pre"/>
+        <flow-ref name="mulelabserviceFlow_middle" doc:name="mulelabserviceFlow_middle"/>
+        <flow-ref name="mulelabserviceFlow_post" doc:name="mulelabserviceFlow_post"/>
+        <!--custom-interceptor class="se.kenta.mule.ms.commons.interceptor.ResponseTimeInterceptor" /-->
+    </flow>
+    <sub-flow name="mulelabserviceFlow_pre">
+    	<!-- <flow-ref name="requestAuditLoggingFlow" doc:name="requestAuditLoggingFlow"/>
+    	<flow-ref name="requestTraceLoggingFlow" doc:name="requestTraceLoggingFlow"/> -->
+    	<component class="se.kenta.mule.ms.commons.logging.RequestLogger" doc:name="Java"/>
+    </sub-flow>
+    <sub-flow name="mulelabserviceFlow_middle">
+        <logger message="Starttime: #[flowVars._startTime_]" level="INFO" doc:name="Logger"/>
+        <component class="se.kenta.mule.ms.commons.util.SleepUtil" doc:name="Java"/>
+    </sub-flow>
+    <sub-flow name="mulelabserviceFlow_post">
+    	<!-- <flow-ref name="responseAuditLoggingFlow" doc:name="responseAuditLoggingFlow"/> -->
+    	<component class="se.kenta.mule.ms.commons.logging.ResponseLogger" doc:name="Java"/>
+    </sub-flow>
+</mule>

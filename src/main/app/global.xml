@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:context="http://www.springframework.org/schema/context" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:spring="http://www.springframework.org/schema/beans" 
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:management="http://www.mulesoft.org/schema/mule/management"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
+http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd 
+http://www.mulesoft.org/schema/mule/management
+http://www.mulesoft.org/schema/mule/management/current/mule-management.xsd  
+http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-current.xsd">
+    <context:property-placeholder location="${MULE_ENV}.properties"/>
+    <spring:beans>
+        <spring:import resource="classpath:trace-logging.xml"/>
+        <spring:import resource="classpath:app-logging.xml"/>
+        <spring:import resource="classpath:audit-logging.xml"/>
+    </spring:beans>
+    <!-- <management:jmx-default-config port="1099" registerMx4jAdapter="true"> -->
+    	<!--management:credentials>
+      		<spring:entry key="jsmith" value="foo"/>
+      		<spring:entry key="dthomas" value="bar"/>
+      		<spring:entry key="clee" value="pwd"/>
+    	</management:credentials-->
+  	<!-- </management:jmx-default-config> -->
+  	<context:property-placeholder location="${MULE_ENV}.properties,file:${HOME}//Desktop//global.txt"/>
+  	<!-- <context:property-placeholder location="${MULE_ENV}.properties,file:/home/kenta/mule/mule-ee-distribution-standalone-3.9.1/mule-enterprise-standalone-3.9.1/conf/globa.properties"/> -->
+  	<!-- <context:property-placeholder location="classpath:global.properties" ignore-resource-not-found="false"/> -->
+</mule>
